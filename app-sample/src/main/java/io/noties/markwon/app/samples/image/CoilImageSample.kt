@@ -85,8 +85,6 @@ class CoilImageSample : MarkwonTextViewSample() {
   val imageLoader: ImageLoader
     get() = ImageLoader.Builder(context)
       .apply {
-        availableMemoryPercentage(0.5)
-        bitmapPoolPercentage(0.5)
         crossfade(true)
       }
       .build()

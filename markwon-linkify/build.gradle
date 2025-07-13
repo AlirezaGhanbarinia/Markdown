@@ -2,8 +2,8 @@ apply plugin: 'com.android.library'
 
 android {
 
+    namespace = "io.noties.markwon.linkify"
     compileSdkVersion config['compile-sdk']
-    buildToolsVersion config['build-tools']
 
     defaultConfig {
         minSdkVersion config['min-sdk']
@@ -22,5 +22,3 @@ dependencies {
 
     api project(':markwon-core')
 }
-
-registerArtifact(this)

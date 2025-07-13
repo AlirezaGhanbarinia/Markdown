@@ -34,11 +34,11 @@ object UpdateUtils {
 
                         override fun onResponse(call: Call, response: Response) {
                             try {
-                                val revision = response.body()?.string()?.trim()
-                                val hasUpdate = revision != null && BuildConfig.GIT_SHA != revision
+                                val revision = response.body.string().trim()
+                                val hasUpdate = revision != null
                                 if (hasUpdate) {
                                     // revision is guarded by `hasUpdate` (includes null check)
-                                    action?.invoke(Result.UpdateAvailable(revision!!, apkUrl))
+                                    action?.invoke(Result.UpdateAvailable(revision, apkUrl))
                                 } else {
                                     action?.invoke(Result.NoUpdate)
                                 }

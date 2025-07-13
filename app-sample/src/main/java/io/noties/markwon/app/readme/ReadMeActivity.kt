@@ -165,7 +165,7 @@ class ReadMeActivity : Activity() {
                     }
 
                     override fun onResponse(call: Call, response: Response) {
-                        val md = response.body()?.string() ?: ""
+                        val md = response.body.string()
                         callback.invoke(Result.Success(md))
                     }
                 })

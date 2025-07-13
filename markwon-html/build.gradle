@@ -2,8 +2,8 @@ apply plugin: 'com.android.library'
 
 android {
 
+    namespace = "io.noties.markwon.html"
     compileSdkVersion config['compile-sdk']
-    buildToolsVersion config['build-tools']
 
     defaultConfig {
         minSdkVersion config['min-sdk']
@@ -32,5 +32,3 @@ dependencies {
         testImplementation it['robolectric']
     }
 }
-
-registerArtifact(this)

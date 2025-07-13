@@ -277,7 +277,7 @@ class SampleListFragment : Fragment() {
                 val md = """
                     ## Update available
                     
-                    ${BuildConfig.GIT_SHA} -&gt; **${result.revision}**
+                    **${result.revision}**
                     
                     Would you like to download it?
                 """.trimIndent()
@@ -292,7 +292,7 @@ class SampleListFragment : Fragment() {
             is UpdateUtils.Result.NoUpdate -> {
                 val md = """
                     ## No update
-                    You are using latest version (**${BuildConfig.GIT_SHA}**)
+                    You are using latest version 
                 """.trimIndent()
                 builder.setMessage(markwon.toMarkdown(md))
                 builder.setPositiveButton(android.R.string.ok, null)
@@ -398,6 +398,7 @@ ${result.throwable.stackTraceString()}
                 when (search) {
                     is SampleSearch.Artifact -> putString(ARG_ARTIFACT, search.artifact.name)
                     is SampleSearch.Tag -> putString(ARG_TAG, search.tag)
+                    is SampleSearch.All -> TODO()
                 }
 
                 val query = search.text
