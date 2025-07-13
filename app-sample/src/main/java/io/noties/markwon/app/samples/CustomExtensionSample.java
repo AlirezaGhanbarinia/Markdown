@@ -293,12 +293,13 @@ class IconProcessor implements DelimiterProcessor {
   }
 
   @Override
-  public int getDelimiterUse(DelimiterRun opener, DelimiterRun closer) {
-    return opener.length() >= 1 && closer.length() >= 1 ? 1 : 0;
-  }
+  public int process(DelimiterRun openingRun, DelimiterRun closingRun) {
+    if (openingRun.length() < 1 || closingRun.length() < 1) {
+      return 0;
+    }
 
-  @Override
-  public void process(Text opener, Text closer, int delimiterUse) {
+    Text opener = openingRun.getOpener();
+    Text closer = closingRun.getCloser();
 
     final IconGroupNode iconGroupNode = new IconGroupNode();
 
@@ -345,6 +346,8 @@ class IconProcessor implements DelimiterProcessor {
     }
 
     opener.insertBefore(iconGroupNode);
+
+    return 1;
   }
 
   private static int iconDefinitionEnd(int index, @NonNull StringBuilder builder) {
