@@ -16,10 +16,4 @@ android {
 dependencies {
 
     api project(':markwon-core')
-
-    deps['test'].with {
-        testImplementation it['junit']
-        testImplementation it['robolectric']
-        testImplementation it['mockito']
-    }
 }

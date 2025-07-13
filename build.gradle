@@ -61,7 +61,7 @@ ext {
             'push-aar-gradle': 'https://raw.githubusercontent.com/noties/gradle-mvn-push/master/gradle-mvn-push-aar.gradle'
     ]
 
-    final def commonMarkVersion = '0.15.2'
+    final def commonMarkVersion = '0.21.0'
     final def daggerVersion = '2.10'
     final def coilVersion = '2.7.0'
 
@@ -77,9 +77,16 @@ ext {
             'x-appcompat'             : 'androidx.appcompat:appcompat:1.7.1',
             'x-cardview'              : 'androidx.cardview:cardview:1.0.0',
             'x-fragment'              : 'androidx.fragment:fragment:1.8.8',
-            'commonmark'              : "com.atlassian.commonmark:commonmark:$commonMarkVersion",
-            'commonmark-strikethrough': "com.atlassian.commonmark:commonmark-ext-gfm-strikethrough:$commonMarkVersion",
-            'commonmark-table'        : "com.atlassian.commonmark:commonmark-ext-gfm-tables:$commonMarkVersion",
+            'commonmark'              : "org.commonmark:commonmark:$commonMarkVersion",
+            'commonmark-strikethrough': "org.commonmark:commonmark-ext-gfm-strikethrough:$commonMarkVersion",
+            'commonmark-table'        : "org.commonmark:commonmark-ext-gfm-tables:$commonMarkVersion",
+            'commonmark-autolink'        : "org.commonmark:commonmark-ext-autolink:$commonMarkVersion",
+            'commonmark-footnotes'        : "org.commonmark:commonmark-ext-footnotes:$commonMarkVersion",
+            'commonmark-anchor'        : "org.commonmark:commonmark-ext-heading-anchor:$commonMarkVersion",
+            'commonmark-image'        : "org.commonmark:commonmark-ext-image-attributes:$commonMarkVersion",
+            'commonmark-ins'        : "org.commonmark:commonmark-ext-ins:$commonMarkVersion",
+            'commonmark-task'        : "org.commonmark:commonmark-ext-task-list-items:$commonMarkVersion",
+            'commonmark-yaml'        : "org.commonmark:commonmark-ext-yaml-front-matter:$commonMarkVersion",
             'android-svg'             : 'com.caverock:androidsvg:1.4',
             // we need 2 gif artifacts at long as we have a difference in version used for API compatibility
             'android-gif'             : 'pl.droidsonroids.gif:android-gif-drawable:1.2.15',
@@ -102,13 +109,6 @@ ext {
     deps['annotationProcessor'] = [
             'prism4j-bundler': 'io.noties:prism4j-bundler:2.0.0',
             'dagger-compiler': "com.google.dagger:dagger-compiler:$daggerVersion"
-    ]
-
-    deps['test'] = [
-            'junit'               : 'junit:junit:4.12',
-            'robolectric'         : 'org.robolectric:robolectric:3.8',
-            'mockito'             : 'org.mockito:mockito-core:2.21.0',
-            'commonmark-test-util': "com.atlassian.commonmark:commonmark-test-util:$commonMarkVersion",
     ]
 }
 

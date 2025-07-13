@@ -100,10 +100,4 @@ dependencies {
         implementation it['android-gif-impl']
         implementation it['coil']
     }
-
-    deps['test'].with {
-        testImplementation it['junit']
-        testImplementation it['robolectric']
-        testImplementation it['mockito']
-    }
 }

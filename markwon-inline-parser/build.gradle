@@ -17,9 +17,4 @@ dependencies {
     api project(':markwon-core')
     api deps['x-annotations']
     api deps['commonmark']
-
-    deps['test'].with {
-        testImplementation it['junit']
-        testImplementation it['commonmark-test-util']
-    }
 }

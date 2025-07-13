@@ -44,15 +44,13 @@ class SimpleExtDelimiterProcessor implements DelimiterProcessor {
     }
 
     @Override
-    public int getDelimiterUse(DelimiterRun opener, DelimiterRun closer) {
-        if (opener.length() >= length && closer.length() >= length) {
-            return length;
+    public int process(DelimiterRun openerNode, DelimiterRun closerNode) {
+        if (openerNode.length() < length || closerNode.length() < length) {
+            return 0;
         }
-        return 0;
-    }
 
-    @Override
-    public void process(Text opener, Text closer, int delimiterUse) {
+        final Text opener = openerNode.getOpener();
+        final Text closer = closerNode.getCloser();
 
         final Node node = new SimpleExtNode(spanFactory);
 
@@ -66,5 +64,7 @@ class SimpleExtDelimiterProcessor implements DelimiterProcessor {
         }
 
         opener.insertAfter(node);
+
+        return length;
     }
 }

@@ -60,16 +60,15 @@ class QuestionDelimiterProcessor implements DelimiterProcessor {
   }
 
   @Override
-  public int getDelimiterUse(DelimiterRun opener, DelimiterRun closer) {
-    if (opener.length() >= 1 && closer.length() >= 1) {
-      return 1;
+  public int process(DelimiterRun openingRun, DelimiterRun closingRun) {
+    if (openingRun.length() < 1 || closingRun.length() < 1) {
+      return 0;
     }
-    return 0;
-  }
 
-  @Override
-  public void process(Text opener, Text closer, int delimiterUse) {
-    final Node node = new Emphasis();
+    Text opener = openingRun.getOpener();
+    Text closer = closingRun.getCloser();
+
+    Node node = new Emphasis();
 
     Node tmp = opener.getNext();
     while (tmp != null && tmp != closer) {
@@ -77,7 +76,8 @@ class QuestionDelimiterProcessor implements DelimiterProcessor {
       node.appendChild(tmp);
       tmp = next;
     }
-
     opener.insertAfter(node);
+
+    return 1;
   }
 }
