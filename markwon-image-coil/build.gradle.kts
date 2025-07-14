@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
@@ -10,6 +11,9 @@ android {
     defaultConfig {
         minSdk = libs.versions.min.sdk.get().toInt()
         targetSdk = libs.versions.target.sdk.get().toInt()
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
     }
 }
 
