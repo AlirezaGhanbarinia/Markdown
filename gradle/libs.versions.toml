@@ -1,0 +1,76 @@
+[versions]
+
+compile-sdk = "35"
+target-sdk = "34"
+min-sdk    = "23"
+
+agp = "8.10.1"
+kotlin = "2.2.0"
+coreKtx = "1.16.0"
+
+commonmark = "0.21.0"
+dagger = "2.56.2"
+coil = "2.7.0"
+androidsvg = "1.4"
+okhttp = "5.1.0"
+glide = "4.16.0"
+picasso = "2.71828"
+prism4j = "2.0.0"
+debug = "5.1.0"
+adapt = "2.2.0"
+ixjava = "1.0.0"
+gson = "2.13.1"
+commonsio = "2.19.0"
+androidgif = "1.2.29"
+jlatexmathandroid = "0.2.0"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlin" }
+
+annotations       = { module = "androidx.annotation:annotation", version = "1.9.1" }
+recyclerView     = { module = "androidx.recyclerview:recyclerview", version = "1.4.0" }
+core              = { module = "androidx.core:core", version = "1.16.0" }
+appcompat         = { module = "androidx.appcompat:appcompat", version = "1.7.1" }
+cardview          = { module = "androidx.cardview:cardview", version = "1.0.0" }
+fragment          = { module = "androidx.fragment:fragment", version = "1.8.8" }
+
+commonmark          = { module = "org.commonmark:commonmark", version.ref = "commonmark" }
+commonmark-strikethrough = { module = "org.commonmark:commonmark-ext-gfm-strikethrough", version.ref = "commonmark" }
+commonmark-table     = { module = "org.commonmark:commonmark-ext-gfm-tables", version.ref = "commonmark" }
+commonmark-autolink  = { module = "org.commonmark:commonmark-ext-autolink", version.ref = "commonmark" }
+commonmark-footnotes = { module = "org.commonmark:commonmark-ext-footnotes", version.ref = "commonmark" }
+commonmark-anchor    = { module = "org.commonmark:commonmark-ext-heading-anchor", version.ref = "commonmark" }
+commonmark-image     = { module = "org.commonmark:commonmark-ext-image-attributes", version.ref = "commonmark" }
+commonmark-ins       = { module = "org.commonmark:commonmark-ext-ins", version.ref = "commonmark" }
+commonmark-task      = { module = "org.commonmark:commonmark-ext-task-list-items", version.ref = "commonmark" }
+commonmark-yaml      = { module = "org.commonmark:commonmark-ext-yaml-front-matter", version.ref = "commonmark" }
+
+android-svg         = { module = "com.caverock:androidsvg", version.ref = "androidsvg" }
+android-gif         = { module = "pl.droidsonroids.gif:android-gif-drawable", version.ref = "androidgif" }
+jlatexmath-android  = { module = "ru.noties:jlatexmath-android", version.ref = "jlatexmathandroid" }
+okhttp              = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+prism4j             = { module = "io.noties:prism4j", version.ref = "prism4j" }
+debug               = { module = "io.noties:debug", version.ref = "debug" }
+adapt               = { module = "io.noties:adapt", version.ref = "adapt" }
+dagger              = { module = "com.google.dagger:dagger", version.ref = "dagger" }
+picasso             = { module = "com.squareup.picasso:picasso", version.ref = "picasso" }
+glide               = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
+coil                = { module = "io.coil-kt:coil", version.ref = "coil" }
+coil-base           = { module = "io.coil-kt:coil-base", version.ref = "coil" }
+ixJava             = { module = "com.github.akarnokd:ixjava", version.ref = "ixjava" }
+gson                = { module = "com.google.code.gson:gson", version.ref = "gson" }
+commons-io          = { module = "commons-io:commons-io", version.ref = "commonsio" }
+
+# annotationProcessor APIs
+prism4j-bundler     = { module = "io.noties:prism4j-bundler", version.ref = "prism4j" }
+dagger-compiler     = { module = "com.google.dagger:dagger-compiler", version.ref = "dagger" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
+
+[bundles]
