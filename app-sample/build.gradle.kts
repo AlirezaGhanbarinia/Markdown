@@ -38,6 +38,14 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
+    sourceSets {
+        named("main") {
+            java {
+                srcDir("../sample-utils/annotations")
+            }
+        }
+    }
 }
 
 kapt {

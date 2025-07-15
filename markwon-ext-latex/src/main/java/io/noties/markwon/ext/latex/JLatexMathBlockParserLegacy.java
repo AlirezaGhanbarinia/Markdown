@@ -1,6 +1,7 @@
 package io.noties.markwon.ext.latex;
 
 import org.commonmark.node.Block;
+import org.commonmark.parser.SourceLine;
 import org.commonmark.parser.block.AbstractBlockParser;
 import org.commonmark.parser.block.AbstractBlockParserFactory;
 import org.commonmark.parser.block.BlockContinue;
@@ -35,7 +36,7 @@ class JLatexMathBlockParserLegacy extends AbstractBlockParser {
     }
 
     @Override
-    public void addLine(CharSequence line) {
+    public void addLine(SourceLine line) {
 
         if (builder.length() > 0) {
             builder.append('\n');

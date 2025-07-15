@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import org.commonmark.internal.util.Parsing;
 import org.commonmark.node.Block;
+import org.commonmark.parser.SourceLine;
 import org.commonmark.parser.block.AbstractBlockParser;
 import org.commonmark.parser.block.AbstractBlockParserFactory;
 import org.commonmark.parser.block.BlockContinue;
@@ -56,7 +57,7 @@ class JLatexMathBlockParser extends AbstractBlockParser {
     }
 
     @Override
-    public void addLine(CharSequence line) {
+    public void addLine(SourceLine line) {
         builder.append(line);
         builder.append('\n');
     }

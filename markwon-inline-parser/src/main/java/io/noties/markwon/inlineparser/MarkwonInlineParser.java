@@ -6,6 +6,7 @@ import androidx.annotation.Nullable;
 import org.commonmark.internal.Bracket;
 import org.commonmark.internal.Delimiter;
 import org.commonmark.internal.inline.AsteriskDelimiterProcessor;
+import org.commonmark.internal.inline.Scanner;
 import org.commonmark.internal.inline.UnderscoreDelimiterProcessor;
 import org.commonmark.internal.util.Escaping;
 import org.commonmark.internal.util.LinkScanner;
@@ -15,6 +16,7 @@ import org.commonmark.node.Text;
 import org.commonmark.parser.InlineParser;
 import org.commonmark.parser.InlineParserContext;
 import org.commonmark.parser.InlineParserFactory;
+import org.commonmark.parser.SourceLines;
 import org.commonmark.parser.delimiter.DelimiterProcessor;
 
 import java.util.ArrayList;
@@ -100,8 +102,7 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
     }
 
     private static final String ASCII_PUNCTUATION = "!\"#\\$%&'\\(\\)\\*\\+,\\-\\./:;<=>\\?@\\[\\\\\\]\\^_`\\{\\|\\}~";
-    private static final Pattern PUNCTUATION = Pattern
-            .compile("^[" + ASCII_PUNCTUATION + "\\p{Pc}\\p{Pd}\\p{Pe}\\p{Pf}\\p{Pi}\\p{Po}\\p{Ps}]");
+    private static final Pattern PUNCTUATION = Pattern.compile("^[" + ASCII_PUNCTUATION + "\\p{Pc}\\p{Pd}\\p{Pe}\\p{Pf}\\p{Pi}\\p{Po}\\p{Ps}]");
 
     private static final Pattern SPNL = Pattern.compile("^ *(?:\n *)?");
 
@@ -121,7 +122,8 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
     // currently we still hold a reference to it because we decided not to
     //  pass previous node argument to inline-processors (current usage is limited with NewLineInlineProcessor)
     private Node block;
-    private String input;
+    private SourceLines input;
+    private Scanner scanner;
     private int index;
 
     /**
@@ -221,8 +223,8 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
      * Parse content in block into inline children, using reference map to resolve references.
      */
     @Override
-    public void parse(String content, Node block) {
-        reset(content.trim());
+    public void parse(SourceLines content, Node block) {
+        reset(content);
 
         // we still reference it
         this.block = block;
@@ -240,8 +242,9 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
         mergeChildTextNodes(block);
     }
 
-    private void reset(String content) {
+    private void reset(SourceLines content) {
         this.input = content;
+        this.scanner = Scanner.of(content);
         this.index = 0;
         this.lastDelimiter = null;
         this.lastBracket = null;
@@ -334,9 +337,7 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
     @Nullable
     @Override
     public LinkReferenceDefinition getLinkReferenceDefinition(String label) {
-        return referencesEnabled
-                ? inlineParserContext.getLinkReferenceDefinition(label)
-                : null;
+        return referencesEnabled ? inlineParserContext.getLinkReferenceDefinition(label) : null;
     }
 
     /**
@@ -344,11 +345,7 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
      */
     @Override
     public char peek() {
-        if (index < input.length()) {
-            return input.charAt(index);
-        } else {
-            return '\0';
-        }
+        return scanner.peek();
     }
 
     @NonNull
@@ -359,7 +356,7 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
 
     @NonNull
     @Override
-    public String input() {
+    public SourceLines input() {
         return input;
     }
 
@@ -421,8 +418,6 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
 
         // Add entry to stack for this opener
         lastDelimiter = new Delimiter(node, delimiterChar, res.canOpen, res.canClose, lastDelimiter);
-        lastDelimiter.length = length;
-        lastDelimiter.originalLength = length;
         if (lastDelimiter.previous != null) {
             lastDelimiter.previous.next = lastDelimiter;
         }
@@ -436,8 +431,8 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
     @Override
     @Nullable
     public String parseLinkDestination() {
-        int afterDest = LinkScanner.scanLinkDestination(input, index);
-        if (afterDest == -1) {
+        boolean afterDest = LinkScanner.scanLinkDestination(scanner);
+        if (!afterDest) {
             return null;
         }
 
@@ -459,8 +454,8 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
     @Override
     @Nullable
     public String parseLinkTitle() {
-        int afterTitle = LinkScanner.scanLinkTitle(input, index);
-        if (afterTitle == -1) {
+        boolean afterTitle = LinkScanner.scanLinkTitle(scanner);
+        if (!afterTitle) {
             return null;
         }
 
@@ -480,10 +475,10 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
         }
 
         int startContent = index + 1;
-        int endContent = LinkScanner.scanLinkLabelContent(input, startContent);
+        boolean endContent = LinkScanner.scanLinkLabelContent(scanner);
         // spec: A link label can have at most 999 characters inside the square brackets.
         int contentLength = endContent - startContent;
-        if (endContent == -1 || contentLength > 999) {
+        if (!endContent || contentLength > 999) {
             return 0;
         }
         if (endContent >= input.length() || input.charAt(endContent) != ']') {

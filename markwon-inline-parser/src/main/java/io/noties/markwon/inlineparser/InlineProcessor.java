@@ -8,6 +8,7 @@ import org.commonmark.internal.Delimiter;
 import org.commonmark.node.Link;
 import org.commonmark.node.Node;
 import org.commonmark.node.Text;
+import org.commonmark.parser.SourceLines;
 
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -42,7 +43,7 @@ public abstract class InlineProcessor {
 
     protected MarkwonInlineParserContext context;
     protected Node block;
-    protected String input;
+    protected SourceLines input;
     protected int index;
 
     @Nullable
