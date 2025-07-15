@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 
 import org.commonmark.internal.Bracket;
 import org.commonmark.internal.Delimiter;
+import org.commonmark.internal.inline.Position;
 import org.commonmark.node.Link;
 import org.commonmark.node.Node;
 import org.commonmark.node.Text;
@@ -44,7 +45,7 @@ public abstract class InlineProcessor {
     protected MarkwonInlineParserContext context;
     protected Node block;
     protected SourceLines input;
-    protected int index;
+    protected Position index;
 
     @Nullable
     public Node parse(@NonNull MarkwonInlineParserContext context) {

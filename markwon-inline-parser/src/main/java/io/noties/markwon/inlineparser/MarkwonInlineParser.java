@@ -1,11 +1,14 @@
 package io.noties.markwon.inlineparser;
 
+import static io.noties.markwon.inlineparser.InlineParserUtils.mergeChildTextNodes;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.commonmark.internal.Bracket;
 import org.commonmark.internal.Delimiter;
 import org.commonmark.internal.inline.AsteriskDelimiterProcessor;
+import org.commonmark.internal.inline.Position;
 import org.commonmark.internal.inline.Scanner;
 import org.commonmark.internal.inline.UnderscoreDelimiterProcessor;
 import org.commonmark.internal.util.Escaping;
@@ -28,9 +31,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static io.noties.markwon.inlineparser.InlineParserUtils.mergeChildTextNodes;
-import static io.noties.markwon.inlineparser.InlineParserUtils.mergeTextNodesBetweenExclusive;
 
 /**
  * @see #factoryBuilder()
@@ -124,7 +124,6 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
     private Node block;
     private SourceLines input;
     private Scanner scanner;
-    private int index;
 
     /**
      * Top delimiter (emphasis, strong emphasis or custom emphasis). (Brackets are on a separate stack, different
@@ -229,7 +228,7 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
         // we still reference it
         this.block = block;
 
-        while (true) {
+        while (scanner.hasNext()) {
             Node node = parseInline();
             if (node != null) {
                 block.appendChild(node);
@@ -245,7 +244,6 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
     private void reset(SourceLines content) {
         this.input = content;
         this.scanner = Scanner.of(content);
-        this.index = 0;
         this.lastDelimiter = null;
         this.lastBracket = null;
     }
@@ -260,7 +258,7 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
 
         final char c = peek();
 
-        if (c == '\0') {
+        if (c == Scanner.END) {
             return null;
         }
 
@@ -269,9 +267,7 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
         final List<InlineProcessor> inlines = this.inlineProcessors.get(c);
 
         if (inlines != null) {
-            // @since 4.6.0 index must not be advanced if inline-processor returned null
-            //  so, further processors can be called at the _same_ position (and thus char)
-            final int startIndex = index;
+            Position pos = scanner.position();
 
             for (InlineProcessor inline : inlines) {
                 node = inline.parse(this);
@@ -280,7 +276,7 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
                 }
 
                 // reset after each iteration (happens only when node is null)
-                index = startIndex;
+                scanner.setPosition(pos);
             }
         } else {
             final DelimiterProcessor delimiterProcessor = delimiterProcessors.get(c);
@@ -294,7 +290,7 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
         if (node != null) {
             return node;
         } else {
-            index++;
+            scanner.next();
             // When we get here, it's only for a single special character that turned out to not have a special meaning.
             // So we shouldn't have a single surrogate here, hence it should be ok to turn it into a String.
             String literal = String.valueOf(c);
@@ -308,18 +304,30 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
     @Override
     @Nullable
     public String match(@NonNull Pattern re) {
-        if (index >= input.length()) {
+        final Position start = scanner.position();
+
+        if (!scanner.hasNext()) {
             return null;
         }
-        Matcher matcher = re.matcher(input);
-        matcher.region(index, input.length());
-        boolean m = matcher.find();
-        if (m) {
-            index = matcher.end();
-            return matcher.group();
-        } else {
-            return null;
+
+        StringBuilder remaining = new StringBuilder();
+        while (scanner.hasNext()) {
+            remaining.append(scanner.peek());
+            scanner.next();
         }
+
+        scanner.setPosition(start);
+
+        Matcher matcher = re.matcher(remaining);
+        if (matcher.lookingAt()) {
+            String matched = matcher.group();
+
+            for (int i = 0; i < matched.length(); i++) {
+                scanner.next();
+            }
+            return matched;
+        }
+        return null;
     }
 
     @NonNull
@@ -361,13 +369,13 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
     }
 
     @Override
-    public int index() {
-        return index;
+    public Position index() {
+        return scanner.position();
     }
 
     @Override
-    public void setIndex(int index) {
-        this.index = index;
+    public void setIndex(@NonNull Position index) {
+        this.scanner.setPosition(index);
     }
 
     @Override
@@ -411,18 +419,26 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
             return null;
         }
         int length = res.count;
-        int startIndex = index;
 
-        index += length;
-        Text node = text(input, startIndex, index);
-
+        Position startPos = scanner.position();
+        List<Text> texts = new ArrayList<>(length);
+        for (int i = 0; i < length; i++) {
+            texts.add(new Text(String.valueOf(scanner.peek())));
+            scanner.next();
+        }
         // Add entry to stack for this opener
-        lastDelimiter = new Delimiter(node, delimiterChar, res.canOpen, res.canClose, lastDelimiter);
+        lastDelimiter = new Delimiter(texts, delimiterChar, res.canOpen, res.canClose, lastDelimiter);
         if (lastDelimiter.previous != null) {
             lastDelimiter.previous.next = lastDelimiter;
         }
 
-        return node;
+        if (texts.size() == 1) {
+            return texts.get(0);
+        } else {
+            Text container = new Text();
+            for (Text t : texts) container.appendChild(t);
+            return container;
+        }
     }
 
     /**
@@ -431,20 +447,20 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
     @Override
     @Nullable
     public String parseLinkDestination() {
-        boolean afterDest = LinkScanner.scanLinkDestination(scanner);
-        if (!afterDest) {
+        Position start = scanner.position();
+        if (!LinkScanner.scanLinkDestination(scanner)) {
             return null;
         }
 
-        String dest;
-        if (peek() == '<') {
-            // chop off surrounding <..>:
-            dest = input.substring(index + 1, afterDest - 1);
-        } else {
-            dest = input.substring(index, afterDest);
+        Position end = scanner.position();
+
+        SourceLines sourceLines = scanner.getSource(start, end);
+        String dest = sourceLines.getContent();
+
+        if (dest.length() >= 2 && dest.charAt(0) == '<' && dest.charAt(dest.length() - 1) == '>') {
+            dest = dest.substring(1, dest.length() - 1);
         }
 
-        index = afterDest;
         return Escaping.unescapeString(dest);
     }
 
@@ -454,14 +470,22 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
     @Override
     @Nullable
     public String parseLinkTitle() {
-        boolean afterTitle = LinkScanner.scanLinkTitle(scanner);
-        if (!afterTitle) {
+        Position start = scanner.position();
+        if (!LinkScanner.scanLinkTitle(scanner)) {
             return null;
         }
 
+        Position end = scanner.position();
+
+        SourceLines lines = scanner.getSource(start, end);
+        String title = lines.getContent();
+
         // chop off ', " or parens
-        String title = input.substring(index + 1, afterTitle - 1);
-        index = afterTitle;
+        if (title.length() >= 2) {
+            title = title.substring(1, title.length() - 1);
+        } else {
+            return null;
+        }
         return Escaping.unescapeString(title);
     }
 
@@ -470,38 +494,54 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
      */
     @Override
     public int parseLinkLabel() {
-        if (index >= input.length() || input.charAt(index) != '[') {
+        if (!scanner.hasNext() || scanner.peek() != '[') {
             return 0;
         }
 
-        int startContent = index + 1;
-        boolean endContent = LinkScanner.scanLinkLabelContent(scanner);
+        Position start = scanner.position();
+
+        scanner.next();
+        Position contentStart = scanner.position();
+
+        if (!LinkScanner.scanLinkLabelContent(scanner)) {
+            return 0;
+        }
+
+        if (!scanner.hasNext() || scanner.peek() != ']') {
+            return 0;
+        }
+
+        Position contentEnd = scanner.position();
+
         // spec: A link label can have at most 999 characters inside the square brackets.
-        int contentLength = endContent - startContent;
-        if (!endContent || contentLength > 999) {
+        SourceLines labelContentLines = scanner.getSource(contentStart, contentEnd);
+        String labelContent = labelContentLines.getContent();
+        if (labelContent.length() > 999) {
             return 0;
         }
-        if (endContent >= input.length() || input.charAt(endContent) != ']') {
-            return 0;
-        }
-        index = endContent + 1;
-        return contentLength + 2;
+
+        scanner.next();
+
+        Position end = scanner.position();
+        SourceLines wholeLabelLines = scanner.getSource(start, end);
+        return wholeLabelLines.getContent().length();
     }
 
     /**
      * Parse a run of ordinary characters, or a single character with a special meaning in markdown, as a plain string.
      */
     private Node parseString() {
-        int begin = index;
-        int length = input.length();
-        while (index != length) {
-            if (specialCharacters.get(input.charAt(index))) {
+        StringBuilder sb = new StringBuilder();
+        while (scanner.hasNext()) {
+            char c = scanner.peek();
+            if (specialCharacters.get(c)) {
                 break;
             }
-            index++;
+            sb.append(c);
+            scanner.next();
         }
-        if (begin != index) {
-            return text(input, begin, index);
+        if (sb.length() > 0) {
+            return new Text(sb.toString());
         } else {
             return null;
         }
@@ -514,25 +554,29 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
      * @return information about delimiter run, or {@code null}
      */
     private DelimiterData scanDelimiters(DelimiterProcessor delimiterProcessor, char delimiterChar) {
-        int startIndex = index;
+        Position start = scanner.position();
 
         int delimiterCount = 0;
         while (peek() == delimiterChar) {
             delimiterCount++;
-            index++;
+            scanner.next();
         }
 
         if (delimiterCount < delimiterProcessor.getMinLength()) {
-            index = startIndex;
+            scanner.setPosition(start);
             return null;
         }
 
-        String before = startIndex == 0 ? "\n" :
-                input.substring(startIndex - 1, startIndex);
+        String before;
+        int codePointBefore = scanner.peekPreviousCodePoint();
+        if (codePointBefore == Scanner.END) {
+            before = "\n";
+        } else {
+            before = String.valueOf((char) codePointBefore);
+        }
 
-        char charAfter = peek();
-        String after = charAfter == '\0' ? "\n" :
-                String.valueOf(charAfter);
+        char charAfter = scanner.hasNext() ? scanner.peek() : Scanner.END;
+        String after = (charAfter == Scanner.END) ? "\n" : String.valueOf(charAfter);
 
         // We could be more lazy here, in most cases we don't need to do every match case.
         boolean beforeIsPunctuation = PUNCTUATION.matcher(before).matches();
@@ -540,10 +584,8 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
         boolean afterIsPunctuation = PUNCTUATION.matcher(after).matches();
         boolean afterIsWhitespace = UNICODE_WHITESPACE_CHAR.matcher(after).matches();
 
-        boolean leftFlanking = !afterIsWhitespace &&
-                (!afterIsPunctuation || beforeIsWhitespace || beforeIsPunctuation);
-        boolean rightFlanking = !beforeIsWhitespace &&
-                (!beforeIsPunctuation || afterIsWhitespace || afterIsPunctuation);
+        boolean leftFlanking = !afterIsWhitespace && (!afterIsPunctuation || beforeIsWhitespace || beforeIsPunctuation);
+        boolean rightFlanking = !beforeIsWhitespace && (!beforeIsPunctuation || afterIsWhitespace || afterIsPunctuation);
         boolean canOpen;
         boolean canClose;
         if (delimiterChar == '_') {
@@ -554,7 +596,7 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
             canClose = rightFlanking && delimiterChar == delimiterProcessor.getClosingCharacter();
         }
 
-        index = startIndex;
+        scanner.setPosition(start);
         return new DelimiterData(delimiterCount, canOpen, canClose);
     }
 
@@ -573,7 +615,7 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
             char delimiterChar = closer.delimiterChar;
 
             DelimiterProcessor delimiterProcessor = delimiterProcessors.get(delimiterChar);
-            if (!closer.canClose || delimiterProcessor == null) {
+            if (!closer.canClose() || delimiterProcessor == null) {
                 closer = closer.next;
                 continue;
             }
@@ -581,14 +623,13 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
             char openingDelimiterChar = delimiterProcessor.getOpeningCharacter();
 
             // Found delimiter closer. Now look back for first matching opener.
-            int useDelims = 0;
             boolean openerFound = false;
             boolean potentialOpenerFound = false;
             Delimiter opener = closer.previous;
             while (opener != null && opener != stackBottom && opener != openersBottom.get(delimiterChar)) {
-                if (opener.canOpen && opener.delimiterChar == openingDelimiterChar) {
+                if (opener.canOpen() && opener.delimiterChar == openingDelimiterChar) {
                     potentialOpenerFound = true;
-                    useDelims = delimiterProcessor.getDelimiterUse(opener, closer);
+                    int useDelims = delimiterProcessor.process(opener, closer);
                     if (useDelims > 0) {
                         openerFound = true;
                         break;
@@ -607,7 +648,7 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
                     // we want to consider it next time because the number
                     // of delimiters can change as we continue processing.
                     openersBottom.put(delimiterChar, closer.previous);
-                    if (!closer.canOpen) {
+                    if (!closer.canOpen()) {
                         // We can remove a closer that can't be an opener,
                         // once we've seen there's no matching opener:
                         removeDelimiterKeepNode(closer);
@@ -617,40 +658,45 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
                 continue;
             }
 
-            Text openerNode = opener.node;
-            Text closerNode = closer.node;
+            int useDelims = delimiterProcessor.process(opener, closer);
+            if (useDelims <= 0) {
+                closer = closer.next;
+                continue;
+            }
 
-            // Remove number of used delimiters from stack and inline nodes.
-            opener.length -= useDelims;
-            closer.length -= useDelims;
-            openerNode.setLiteral(
-                    openerNode.getLiteral().substring(0,
-                            openerNode.getLiteral().length() - useDelims));
-            closerNode.setLiteral(
-                    closerNode.getLiteral().substring(0,
-                            closerNode.getLiteral().length() - useDelims));
+            for (int i = 0; i < useDelims; i++) {
+                Text t = opener.characters.remove(opener.characters.size() - 1);
+                removeNodeIfEmpty(t);
+            }
+            for (int i = 0; i < useDelims; i++) {
+                Text t = closer.characters.remove(0);
+                removeNodeIfEmpty(t);
+            }
 
             removeDelimitersBetween(opener, closer);
-            // The delimiter processor can re-parent the nodes between opener and closer,
-            // so make sure they're contiguous already. Exclusive because we want to keep opener/closer themselves.
-            mergeTextNodesBetweenExclusive(openerNode, closerNode);
-            delimiterProcessor.process(openerNode, closerNode, useDelims);
 
-            // No delimiter characters left to process, so we can remove delimiter and the now empty node.
-            if (opener.length == 0) {
+            if (opener.length() == 0) {
                 removeDelimiterAndNode(opener);
             }
 
-            if (closer.length == 0) {
+            if (closer.length() == 0) {
                 Delimiter next = closer.next;
                 removeDelimiterAndNode(closer);
                 closer = next;
+            } else {
+                closer = closer.next;
             }
         }
 
         // remove all delimiters
         while (lastDelimiter != null && lastDelimiter != stackBottom) {
             removeDelimiterKeepNode(lastDelimiter);
+        }
+    }
+
+    private void removeNodeIfEmpty(Text text) {
+        if (text.getLiteral().isEmpty()) {
+            text.unlink();
         }
     }
 
@@ -667,8 +713,9 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
      * Remove the delimiter and the corresponding text node. For used delimiters, e.g. `*` in `*foo*`.
      */
     private void removeDelimiterAndNode(Delimiter delim) {
-        Text node = delim.node;
-        node.unlink();
+        for (Text text : delim.characters) {
+            text.unlink();
+        }
         removeDelimiter(delim);
     }
 

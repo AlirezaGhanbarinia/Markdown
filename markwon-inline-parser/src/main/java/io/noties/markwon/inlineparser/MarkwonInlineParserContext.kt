@@ -2,6 +2,7 @@ package io.noties.markwon.inlineparser
 
 import org.commonmark.internal.Bracket
 import org.commonmark.internal.Delimiter
+import org.commonmark.internal.inline.Position
 import org.commonmark.node.LinkReferenceDefinition
 import org.commonmark.node.Node
 import org.commonmark.node.Text
@@ -13,9 +14,9 @@ interface MarkwonInlineParserContext {
 
     fun input(): SourceLines
 
-    fun index(): Int
+    fun index(): Position
 
-    fun setIndex(index: Int)
+    fun setIndex(index: Position)
 
     fun lastBracket(): Bracket?
 

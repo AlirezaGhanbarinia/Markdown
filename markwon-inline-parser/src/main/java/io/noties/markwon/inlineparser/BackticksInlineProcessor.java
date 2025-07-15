@@ -1,5 +1,6 @@
 package io.noties.markwon.inlineparser;
 
+import org.commonmark.internal.inline.Position;
 import org.commonmark.internal.util.Parsing;
 import org.commonmark.node.Code;
 import org.commonmark.node.Node;
@@ -28,7 +29,7 @@ public class BackticksInlineProcessor extends InlineProcessor {
         if (ticks == null) {
             return null;
         }
-        int afterOpenTicks = index;
+        Position afterOpenTicks = index;
         String matched;
         while ((matched = match(TICKS)) != null) {
             if (matched.equals(ticks)) {

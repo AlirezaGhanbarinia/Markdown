@@ -1,6 +1,7 @@
 package io.noties.markwon.inlineparser;
 
 import org.commonmark.internal.Bracket;
+import org.commonmark.internal.inline.Position;
 import org.commonmark.internal.util.Escaping;
 import org.commonmark.node.Image;
 import org.commonmark.node.Link;
@@ -29,7 +30,7 @@ public class CloseBracketInlineProcessor extends InlineProcessor {
     @Override
     protected Node parse() {
         index++;
-        int startIndex = index;
+        Position startIndex = index;
 
         // Get previous `[` or `![`
         Bracket opener = lastBracket();
