@@ -1,6 +1,7 @@
 package io.noties.markwon.inlineparser;
 
 import org.commonmark.internal.Bracket;
+import org.commonmark.internal.inline.Position;
 import org.commonmark.node.Node;
 import org.commonmark.node.Text;
 
@@ -17,19 +18,13 @@ public class BangInlineProcessor extends InlineProcessor {
 
     @Override
     protected Node parse() {
-        int startIndex = index;
-        index++;
-        if (peek() == '[') {
-            index++;
-
-            Text node = text("![");
-
-            // Add entry to stack for this opener
-            addBracket(Bracket.image(node, startIndex + 1, lastBracket(), lastDelimiter()));
-
-            return node;
-        } else {
+        Position startPosition = scanner.position();
+        if (!scanner.next('[')) {
             return null;
         }
+        Text node = text("![");
+        Position contentPosition = scanner.position();
+        addBracket(Bracket.image(node, startPosition, contentPosition, lastBracket(), lastDelimiter()));
+        return node;
     }
 }

@@ -19,14 +19,15 @@ public class BackslashInlineProcessor extends InlineProcessor {
 
     @Override
     protected Node parse() {
-        index++;
+        scanner.next();
+        char next = scanner.peek();
         Node node;
-        if (peek() == '\n') {
+        if (next == '\n') {
+            scanner.next(); // HardLineBreak
             node = new HardLineBreak();
-            index++;
-        } else if (index < input.length() && ESCAPABLE.matcher(input.substring(index, index + 1)).matches()) {
-            node = text(input, index, index + 1);
-            index++;
+        } else if (ESCAPABLE.matcher(String.valueOf(next)).matches()) {
+            scanner.next(); // Escaped character
+            node = text(String.valueOf(next));
         } else {
             node = text("\\");
         }

@@ -6,6 +6,7 @@ import androidx.annotation.Nullable;
 import org.commonmark.internal.Bracket;
 import org.commonmark.internal.Delimiter;
 import org.commonmark.internal.inline.Position;
+import org.commonmark.internal.inline.Scanner;
 import org.commonmark.node.Link;
 import org.commonmark.node.Node;
 import org.commonmark.node.Text;
@@ -45,21 +46,16 @@ public abstract class InlineProcessor {
     protected MarkwonInlineParserContext context;
     protected Node block;
     protected SourceLines input;
-    protected Position index;
+    protected Scanner scanner;
 
     @Nullable
     public Node parse(@NonNull MarkwonInlineParserContext context) {
         this.context = context;
         this.block = context.block();
         this.input = context.input();
-        this.index = context.index();
+        this.scanner = context.scanner();
 
-        final Node result = parse();
-
-        // synchronize index
-        context.setIndex(index);
-
-        return result;
+        return parse();
     }
 
     protected Bracket lastBracket() {
@@ -79,51 +75,30 @@ public abstract class InlineProcessor {
     }
 
     protected void spnl() {
-        context.setIndex(index);
         context.spnl();
-        index = context.index();
     }
 
     @Nullable
     protected String match(@NonNull Pattern re) {
-        // before trying to match, we must notify context about our index (which we store additionally here)
-        context.setIndex(index);
-
-        final String result = context.match(re);
-
-        // after match we must reflect index change here
-        this.index = context.index();
-
-        return result;
+        return context.match(re);
     }
 
     @Nullable
     protected String parseLinkDestination() {
-        context.setIndex(index);
-        final String result = context.parseLinkDestination();
-        this.index = context.index();
-        return result;
+        return context.parseLinkDestination();
     }
 
     @Nullable
     protected String parseLinkTitle() {
-        context.setIndex(index);
-        final String result = context.parseLinkTitle();
-        this.index = context.index();
-        return result;
+        return context.parseLinkTitle();
     }
 
     protected int parseLinkLabel() {
-        context.setIndex(index);
-        final int result = context.parseLinkLabel();
-        this.index = context.index();
-        return result;
+        return context.parseLinkLabel();
     }
 
     protected void processDelimiters(Delimiter stackBottom) {
-        context.setIndex(index);
         context.processDelimiters(stackBottom);
-        this.index = context.index();
     }
 
     @NonNull
@@ -137,7 +112,6 @@ public abstract class InlineProcessor {
     }
 
     protected char peek() {
-        context.setIndex(index);
         return context.peek();
     }
 }

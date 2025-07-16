@@ -22,7 +22,7 @@ public class NewLineInlineProcessor extends InlineProcessor {
 
     @Override
     protected Node parse() {
-        index++; // assume we're at a \n
+        scanner.next(); // assume we're at a \n
 
         final Node previous = block.getLastChild();
 

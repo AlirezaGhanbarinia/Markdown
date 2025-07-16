@@ -1,6 +1,7 @@
 package io.noties.markwon.inlineparser;
 
 import org.commonmark.internal.Bracket;
+import org.commonmark.internal.inline.Position;
 import org.commonmark.node.Node;
 import org.commonmark.node.Text;
 
@@ -17,14 +18,11 @@ public class OpenBracketInlineProcessor extends InlineProcessor {
 
     @Override
     protected Node parse() {
-        int startIndex = index;
-        index++;
-
+        Position markerPosition = scanner.position();
+        scanner.next();
         Text node = text("[");
-
-        // Add entry to stack for this opener
-        addBracket(Bracket.link(node, startIndex, lastBracket(), lastDelimiter()));
-
+        Position contentPosition = scanner.position();
+        addBracket(Bracket.link(node, markerPosition, contentPosition, lastBracket(), lastDelimiter()));
         return node;
     }
 }

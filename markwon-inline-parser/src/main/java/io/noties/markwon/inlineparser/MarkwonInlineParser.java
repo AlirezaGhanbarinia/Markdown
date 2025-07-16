@@ -21,6 +21,7 @@ import org.commonmark.parser.InlineParserContext;
 import org.commonmark.parser.InlineParserFactory;
 import org.commonmark.parser.SourceLines;
 import org.commonmark.parser.delimiter.DelimiterProcessor;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -369,13 +370,9 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
     }
 
     @Override
-    public Position index() {
-        return scanner.position();
-    }
-
-    @Override
-    public void setIndex(@NonNull Position index) {
-        this.scanner.setPosition(index);
+    @NotNull
+    public Scanner scanner() {
+        return scanner;
     }
 
     @Override

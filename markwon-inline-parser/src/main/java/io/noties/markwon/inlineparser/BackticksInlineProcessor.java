@@ -1,11 +1,9 @@
 package io.noties.markwon.inlineparser;
 
 import org.commonmark.internal.inline.Position;
-import org.commonmark.internal.util.Parsing;
 import org.commonmark.node.Code;
 import org.commonmark.node.Node;
-
-import java.util.regex.Pattern;
+import org.commonmark.parser.SourceLines;
 
 /**
  * Parses inline code surrounded with {@code `} chars {@code `code`}
@@ -14,10 +12,6 @@ import java.util.regex.Pattern;
  */
 public class BackticksInlineProcessor extends InlineProcessor {
 
-    private static final Pattern TICKS = Pattern.compile("`+");
-
-    private static final Pattern TICKS_HERE = Pattern.compile("^`+");
-
     @Override
     public char specialCharacter() {
         return '`';
@@ -25,33 +19,47 @@ public class BackticksInlineProcessor extends InlineProcessor {
 
     @Override
     protected Node parse() {
-        String ticks = match(TICKS_HERE);
-        if (ticks == null) {
-            return null;
-        }
-        Position afterOpenTicks = index;
-        String matched;
-        while ((matched = match(TICKS)) != null) {
-            if (matched.equals(ticks)) {
-                Code node = new Code();
-                String content = input.substring(afterOpenTicks, index - ticks.length());
-                content = content.replace('\n', ' ');
+        int openingTicksCount = scanner.match(c -> c == '`');
+        if (openingTicksCount <= 0) return null;
 
-                // spec: If the resulting string both begins and ends with a space character, but does not consist
-                // entirely of space characters, a single space character is removed from the front and back.
-                if (content.length() >= 3 &&
-                        content.charAt(0) == ' ' &&
-                        content.charAt(content.length() - 1) == ' ' &&
-                        Parsing.hasNonSpace(content)) {
-                    content = content.substring(1, content.length() - 1);
-                }
+        final Position afterOpen = scanner.position();
+        Position beforeClose = null;
 
-                node.setLiteral(content);
-                return node;
+        while (scanner.hasNext()) {
+            Position preMatch = scanner.position();
+            int closingTicksCount = scanner.match(c -> c == '`');
+
+            if (closingTicksCount == openingTicksCount) {
+                beforeClose = preMatch;
+                break;
             }
         }
-        // If we got here, we didn't match a closing backtick sequence.
-        index = afterOpenTicks;
-        return text(ticks);
+
+        if (beforeClose != null) {
+            SourceLines contentLines = scanner.getSource(afterOpen, beforeClose);
+            String content = contentLines.getContent().replace('\n', ' ');
+
+            if (content.length() >= 3 &&
+                    content.charAt(0) == ' ' &&
+                    content.charAt(content.length() - 1) == ' ' &&
+                    hasNonSpace(content)) {
+                content = content.substring(1, content.length() - 1);
+            }
+
+            Code code = new Code();
+            code.setLiteral(content);
+            return code;
+        }
+
+        return text("`".repeat(openingTicksCount));
+    }
+
+    private static boolean hasNonSpace(String content) {
+        for (int i = 0; i < content.length(); i++) {
+            if (content.charAt(i) != ' ') {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -46,8 +46,7 @@ class JLatexMathBlockParserLegacy extends AbstractBlockParser {
 
         final int length = builder.length();
         if (length > 1) {
-            isClosed = '$' == builder.charAt(length - 1)
-                    && '$' == builder.charAt(length - 2);
+            isClosed = '$' == builder.charAt(length - 1) && '$' == builder.charAt(length - 2);
             if (isClosed) {
                 builder.replace(length - 2, length, "");
             }
@@ -64,16 +63,12 @@ class JLatexMathBlockParserLegacy extends AbstractBlockParser {
         @Override
         public BlockStart tryStart(ParserState state, MatchedBlockParser matchedBlockParser) {
 
-            final CharSequence line = state.getLine();
-            final int length = line != null
-                    ? line.length()
-                    : 0;
+            final SourceLine line = state.getLine();
+            final int length = line != null ? line.getSourceSpan().getLength() : 0;
 
             if (length > 1) {
-                if ('$' == line.charAt(0)
-                        && '$' == line.charAt(1)) {
-                    return BlockStart.of(new JLatexMathBlockParserLegacy())
-                            .atIndex(state.getIndex() + 2);
+                if ('$' == line.getContent().charAt(0) && '$' == line.getContent().charAt(1)) {
+                    return BlockStart.of(new JLatexMathBlockParserLegacy()).atIndex(state.getIndex() + 2);
                 }
             }
 

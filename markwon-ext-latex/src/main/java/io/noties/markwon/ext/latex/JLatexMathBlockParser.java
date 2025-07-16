@@ -39,15 +39,15 @@ class JLatexMathBlockParser extends AbstractBlockParser {
     @Override
     public BlockContinue tryContinue(ParserState parserState) {
         final int nextNonSpaceIndex = parserState.getNextNonSpaceIndex();
-        final CharSequence line = parserState.getLine();
-        final int length = line.length();
+        final SourceLine line = parserState.getLine();
+        final int length = line.getSourceSpan().getLength();
 
         // check for closing
         if (parserState.getIndent() < Parsing.CODE_BLOCK_INDENT) {
-            if (consume(DOLLAR, line, nextNonSpaceIndex, length) == signs) {
+            if (consume(DOLLAR, line.getContent(), nextNonSpaceIndex, length) == signs) {
                 // okay, we have our number of signs
                 // let's consume spaces until the end
-                if (Parsing.skip(SPACE, line, nextNonSpaceIndex + signs, length) == length) {
+                if (Parsing.skip(SPACE, line.getContent(), nextNonSpaceIndex + signs, length) == length) {
                     return BlockContinue.finished();
                 }
             }
@@ -87,10 +87,10 @@ class JLatexMathBlockParser extends AbstractBlockParser {
             }
 
             final int nextNonSpaceIndex = state.getNextNonSpaceIndex();
-            final CharSequence line = state.getLine();
-            final int length = line.length();
+            final SourceLine line = state.getLine();
+            final int length = line.getSourceSpan().getLength();
 
-            final int signs = consume(DOLLAR, line, nextNonSpaceIndex, length);
+            final int signs = consume(DOLLAR, line.getContent(), nextNonSpaceIndex, length);
 
             // 2 is minimum
             if (signs < 2) {
@@ -98,7 +98,7 @@ class JLatexMathBlockParser extends AbstractBlockParser {
             }
 
             // consume spaces until the end of the line, if any other content is found -> NONE
-            if (Parsing.skip(SPACE, line, nextNonSpaceIndex + signs, length) != length) {
+            if (Parsing.skip(SPACE, line.getContent(), nextNonSpaceIndex + signs, length) != length) {
                 return BlockStart.none();
             }
 

@@ -20,8 +20,6 @@ import static io.noties.markwon.inlineparser.InlineParserUtils.mergeChildTextNod
  */
 public class CloseBracketInlineProcessor extends InlineProcessor {
 
-    private static final Pattern WHITESPACE = MarkwonInlineParser.WHITESPACE;
-
     @Override
     public char specialCharacter() {
         return ']';
@@ -29,8 +27,8 @@ public class CloseBracketInlineProcessor extends InlineProcessor {
 
     @Override
     protected Node parse() {
-        index++;
-        Position startIndex = index;
+        scanner.next();
+        Position startIndex = scanner.position();
 
         // Get previous `[` or `![`
         Bracket opener = lastBracket();
@@ -53,20 +51,21 @@ public class CloseBracketInlineProcessor extends InlineProcessor {
 
         // Maybe a inline link like `[foo](/uri "title")`
         if (peek() == '(') {
-            index++;
+            scanner.next();
             spnl();
             if ((dest = parseLinkDestination()) != null) {
                 spnl();
+                Position beforeTitle = scanner.position();
                 // title needs a whitespace before
-                if (WHITESPACE.matcher(input.substring(index - 1, index)).matches()) {
+                if (scanner.whitespace() > 0) {
                     title = parseLinkTitle();
                     spnl();
                 }
                 if (peek() == ')') {
-                    index++;
+                    scanner.next();
                     isLinkOrImage = true;
                 } else {
-                    index = startIndex;
+                    scanner.setPosition(startIndex);
                 }
             }
         }
@@ -75,21 +74,22 @@ public class CloseBracketInlineProcessor extends InlineProcessor {
         if (!isLinkOrImage) {
 
             // See if there's a link label like `[bar]` or `[]`
-            int beforeLabel = index;
+            Position beforeLabel = scanner.position();
             parseLinkLabel();
-            int labelLength = index - beforeLabel;
+            Position afterLabel = scanner.position();
+            int labelLength = scanner.getSource(beforeLabel, afterLabel).getContent().length();
             String ref = null;
             if (labelLength > 2) {
-                ref = input.substring(beforeLabel, beforeLabel + labelLength);
+                ref = scanner.getSource(beforeLabel, afterLabel).getContent();
             } else if (!opener.bracketAfter) {
                 // If the second label is empty `[foo][]` or missing `[foo]`, then the first label is the reference.
                 // But it can only be a reference when there's no (unescaped) bracket in it.
                 // If there is, we don't even need to try to look up the reference. This is an optimization.
-                ref = input.substring(opener.index, startIndex);
+                ref = scanner.getSource(opener.contentPosition, startIndex).getContent();
             }
 
             if (ref != null) {
-                String label = Escaping.normalizeReference(ref);
+                String label = normalizeReference(ref);
                 LinkReferenceDefinition definition = context.getLinkReferenceDefinition(label);
                 if (definition != null) {
                     dest = definition.getDestination();
@@ -132,10 +132,16 @@ public class CloseBracketInlineProcessor extends InlineProcessor {
             return linkOrImage;
 
         } else { // no link or image
-            index = startIndex;
+            scanner.setPosition(startIndex);
             removeLastBracket();
 
             return text("]");
         }
+    }
+
+    public static String normalizeReference(String input) {
+        // Strip '[' and ']'
+        String stripped = input.substring(1, input.length() - 1);
+        return Escaping.normalizeLabelContent(stripped);
     }
 }
