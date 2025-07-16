@@ -1,6 +1,7 @@
 import org.gradle.kotlin.dsl.api
 
 plugins {
+    `maven-publish`
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
 }
