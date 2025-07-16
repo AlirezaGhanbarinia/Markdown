@@ -8,7 +8,7 @@ agp = "8.10.1"
 kotlin = "2.2.0"
 coreKtx = "1.16.0"
 
-commonmark = "0.21.0"
+commonmark = "0.25.0"
 coil = "2.7.0"
 androidsvg = "1.4"
 okhttp = "5.1.0"

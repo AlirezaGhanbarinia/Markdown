@@ -8,8 +8,6 @@ import androidx.annotation.Nullable;
 import org.commonmark.internal.Bracket;
 import org.commonmark.internal.Delimiter;
 import org.commonmark.internal.inline.AsteriskDelimiterProcessor;
-import org.commonmark.internal.inline.Position;
-import org.commonmark.internal.inline.Scanner;
 import org.commonmark.internal.inline.UnderscoreDelimiterProcessor;
 import org.commonmark.internal.util.Escaping;
 import org.commonmark.internal.util.LinkScanner;
@@ -20,6 +18,8 @@ import org.commonmark.parser.InlineParser;
 import org.commonmark.parser.InlineParserContext;
 import org.commonmark.parser.InlineParserFactory;
 import org.commonmark.parser.SourceLines;
+import org.commonmark.parser.beta.Position;
+import org.commonmark.parser.beta.Scanner;
 import org.commonmark.parser.delimiter.DelimiterProcessor;
 import org.jetbrains.annotations.NotNull;
 

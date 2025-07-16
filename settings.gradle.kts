@@ -1,24 +1,19 @@
 pluginManagement {
     repositories {
-        maven {
-            setUrl("https://maven.myket.ir")
-        }
-        google()
+        maven { setUrl("https://maven.myket.ir") }
         gradlePluginPortal()
+        google()
         mavenCentral()
 
-        maven(url = "https://jitpack.io")
+        maven { setUrl("https://jitpack.io") }
     }
     dependencyResolutionManagement {
         repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
         repositories {
-            maven {
-                setUrl("https://maven.myket.ir")
-            }
+            maven { setUrl("https://maven.myket.ir") }
+            gradlePluginPortal()
             google()
             mavenCentral()
-
-            maven(url = "https://jitpack.io")
         }
     }
 }

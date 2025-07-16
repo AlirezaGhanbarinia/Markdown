@@ -1,9 +1,9 @@
 package io.noties.markwon.inlineparser;
 
-import org.commonmark.internal.inline.Position;
 import org.commonmark.node.Code;
 import org.commonmark.node.Node;
 import org.commonmark.parser.SourceLines;
+import org.commonmark.parser.beta.Position;
 
 /**
  * Parses inline code surrounded with {@code `} chars {@code `code`}

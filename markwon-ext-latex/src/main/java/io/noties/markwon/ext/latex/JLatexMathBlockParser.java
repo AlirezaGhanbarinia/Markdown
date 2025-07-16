@@ -47,7 +47,7 @@ class JLatexMathBlockParser extends AbstractBlockParser {
             if (consume(DOLLAR, line.getContent(), nextNonSpaceIndex, length) == signs) {
                 // okay, we have our number of signs
                 // let's consume spaces until the end
-                if (Parsing.skip(SPACE, line.getContent(), nextNonSpaceIndex + signs, length) == length) {
+                if (onlySpacesAfter(line.getContent(), nextNonSpaceIndex + signs, length)) {
                     return BlockContinue.finished();
                 }
             }
@@ -98,12 +98,11 @@ class JLatexMathBlockParser extends AbstractBlockParser {
             }
 
             // consume spaces until the end of the line, if any other content is found -> NONE
-            if (Parsing.skip(SPACE, line.getContent(), nextNonSpaceIndex + signs, length) != length) {
+            if (!onlySpacesAfter(line.getContent(), nextNonSpaceIndex + signs, length)) {
                 return BlockStart.none();
             }
 
-            return BlockStart.of(new JLatexMathBlockParser(signs))
-                    .atIndex(length + 1);
+            return BlockStart.of(new JLatexMathBlockParser(signs)).atIndex(length + 1);
         }
     }
 
@@ -117,4 +116,14 @@ class JLatexMathBlockParser extends AbstractBlockParser {
         // all consumed
         return end - start;
     }
+
+    private static boolean onlySpacesAfter(CharSequence content, int start, int end) {
+        for (int i = start; i < end; i++) {
+            if (content.charAt(i) != SPACE) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 }
