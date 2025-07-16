@@ -19,6 +19,8 @@ android {
 
 dependencies {
     api(projects.markwonCore)
-    api(libs.prism4j)
+    api(libs.prism4j){
+        exclude(group = "org.jetbrains", module = "annotations-java5")
+    }
     implementation(libs.androidx.core.ktx)
 }

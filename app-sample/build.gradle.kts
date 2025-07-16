@@ -54,15 +54,12 @@ kapt {
     }
 }
 
-
-configurations.all {
-    exclude(group = "org.jetbrains", module= "annotations-java5")
-}
-
 dependencies {
 
     kapt(projects.sampleUtils.processor)
-    kapt(libs.prism4j.bundler)
+    kapt(libs.prism4j.bundler){
+        exclude(group = "org.jetbrains", module = "annotations-java5")
+    }
 
     implementation(projects.markwonCore)
     implementation(projects.markwonEditor)
@@ -89,7 +86,9 @@ dependencies {
     implementation(libs.cardview)
     implementation(libs.fragment)
     implementation(libs.okhttp)
-    implementation(libs.prism4j)
+    implementation(libs.prism4j){
+        exclude(group = "org.jetbrains", module = "annotations-java5")
+    }
     implementation(libs.gson)
     implementation(libs.adapt)
     implementation(libs.debug)
