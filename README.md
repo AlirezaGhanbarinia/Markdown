@@ -35,7 +35,7 @@ as user types (for example in **EditText**).
 ![snapshot](https://img.shields.io/nexus/s/https/oss.sonatype.org/io.noties.markwon/core.svg?label=snapshot)
 
 ```kotlin
-implementation "io.noties.markwon:core:${markwonVersion}"
+implementation "com.github.AlirezaGhanbarinia:Markdown:core:${markwonVersion}"
 ```
 
 Full list of available artifacts is present in the [install section](https://noties.github.io/Markwon/docs/v4/install.html)
