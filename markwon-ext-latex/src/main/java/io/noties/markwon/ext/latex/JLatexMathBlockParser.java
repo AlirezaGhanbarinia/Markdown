@@ -40,7 +40,7 @@ class JLatexMathBlockParser extends AbstractBlockParser {
     public BlockContinue tryContinue(ParserState parserState) {
         final int nextNonSpaceIndex = parserState.getNextNonSpaceIndex();
         final SourceLine line = parserState.getLine();
-        final int length = line.getSourceSpan().getLength();
+        final int length = line.getContent().length();
 
         // check for closing
         if (parserState.getIndent() < Parsing.CODE_BLOCK_INDENT) {
@@ -88,7 +88,7 @@ class JLatexMathBlockParser extends AbstractBlockParser {
 
             final int nextNonSpaceIndex = state.getNextNonSpaceIndex();
             final SourceLine line = state.getLine();
-            final int length = line.getSourceSpan().getLength();
+            final int length = line.getContent().length();
 
             final int signs = consume(DOLLAR, line.getContent(), nextNonSpaceIndex, length);
 

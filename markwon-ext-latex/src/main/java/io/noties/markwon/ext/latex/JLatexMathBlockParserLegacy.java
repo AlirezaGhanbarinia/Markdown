@@ -64,7 +64,7 @@ class JLatexMathBlockParserLegacy extends AbstractBlockParser {
         public BlockStart tryStart(ParserState state, MatchedBlockParser matchedBlockParser) {
 
             final SourceLine line = state.getLine();
-            final int length = line != null ? line.getSourceSpan().getLength() : 0;
+            final int length = line != null ? line.getContent().length() : 0;
 
             if (length > 1) {
                 if ('$' == line.getContent().charAt(0) && '$' == line.getContent().charAt(1)) {
