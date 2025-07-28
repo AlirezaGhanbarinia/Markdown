@@ -40,14 +40,14 @@ class BangInlineProcessor : InlineProcessor() {
     }
 
     // helper node to represent the composite `![`
-    private class CompositeNode(vararg children: Node?) : Node() {
+    private class CompositeNode(vararg children: Node) : Node() {
         init {
             for (child in children) {
                 appendChild(child)
             }
         }
 
-        override fun accept(visitor: Visitor?) {
+        override fun accept(visitor: Visitor) {
             var child = firstChild
             while (child != null) {
                 val next = child.next

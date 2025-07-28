@@ -20,7 +20,7 @@ interface MarkwonInlineParserContext {
 
     fun lastDelimiter(): Delimiter?
 
-    fun addBracket(bracket: Bracket?)
+    fun addBracket(bracket: Bracket)
 
     fun removeLastBracket()
 
@@ -37,7 +37,7 @@ interface MarkwonInlineParserContext {
 
     fun text(text: String, beginIndex: Int, endIndex: Int): Text
 
-    fun getLinkReferenceDefinition(label: String?): LinkReferenceDefinition?
+    fun getLinkReferenceDefinition(label: String): LinkReferenceDefinition?
 
     fun parseLinkDestination(): String?
 

@@ -25,7 +25,7 @@ object InlineParserUtils {
         mergeTextNodesInclusive(node.firstChild, node.lastChild)
     }
 
-    fun mergeTextNodesInclusive(fromNode: Node?, toNode: Node?) {
+    fun mergeTextNodesInclusive(fromNode: Node, toNode: Node) {
         var first: Text? = null
         var last: Text? = null
         var length = 0

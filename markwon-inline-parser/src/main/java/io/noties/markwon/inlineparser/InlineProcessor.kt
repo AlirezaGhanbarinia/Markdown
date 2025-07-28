@@ -65,7 +65,7 @@ abstract class InlineProcessor {
         return context.lastDelimiter()
     }
 
-    protected fun addBracket(bracket: Bracket?) {
+    protected fun addBracket(bracket: Bracket) {
         context.addBracket(bracket)
     }
 
@@ -93,7 +93,7 @@ abstract class InlineProcessor {
         return context.parseLinkLabel()
     }
 
-    protected fun processDelimiters(stackBottom: Delimiter?) {
+    protected fun processDelimiters(stackBottom: Delimiter) {
         context.processDelimiters(stackBottom)
     }
 

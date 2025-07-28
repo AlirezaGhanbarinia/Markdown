@@ -1,5 +1,6 @@
 package io.noties.markwon.inlineparser
 
+import android.util.Log
 import org.commonmark.internal.Bracket
 import org.commonmark.internal.Delimiter
 import org.commonmark.internal.inline.AsteriskDelimiterProcessor
@@ -51,9 +52,9 @@ class MarkwonInlineParser(
          */
         fun referencesEnabled(referencesEnabled: Boolean): FactoryBuilder
 
-        fun excludeInlineProcessor(processor: Class<out InlineProcessor?>): FactoryBuilder
+        fun excludeInlineProcessor(processor: Class<out InlineProcessor>): FactoryBuilder
 
-        fun excludeDelimiterProcessor(processor: Class<out DelimiterProcessor?>): FactoryBuilder
+        fun excludeDelimiterProcessor(processor: Class<out DelimiterProcessor>): FactoryBuilder
 
         fun build(): InlineParserFactory
     }
@@ -108,6 +109,7 @@ class MarkwonInlineParser(
         while (true) {
             val node = parseInline()
             if (node != null) {
+                Log.d("parse1", "parse: $node")
                 block.appendChild(node)
             } else {
                 break
@@ -119,6 +121,7 @@ class MarkwonInlineParser(
     }
 
     private fun reset(content: SourceLines) {
+        Log.d("parse2", "parse: ${content.content}")
         this.input = content
         this.scanner = Scanner.of(content)
         this.lastDelimiter = null
@@ -160,6 +163,7 @@ class MarkwonInlineParser(
             } else {
                 parseString()
             }
+            Log.d("parse3", "$c -> $delimiterProcessor -> $node")
         }
 
         if (node != null) {
@@ -192,11 +196,9 @@ class MarkwonInlineParser(
         val matcher = re.matcher(remaining)
         if (matcher.lookingAt()) {
             val matched = matcher.group()
-
             repeat(matched.length) {
                 scanner.next()
             }
-
             return matched
         }
         return null
@@ -210,7 +212,7 @@ class MarkwonInlineParser(
         return Text(text.substring(beginIndex, endIndex))
     }
 
-    override fun getLinkReferenceDefinition(label: String?): LinkReferenceDefinition? {
+    override fun getLinkReferenceDefinition(label: String): LinkReferenceDefinition? {
         return if (referencesEnabled) inlineParserContext.getLinkReferenceDefinition(label) else null
     }
 
@@ -241,7 +243,7 @@ class MarkwonInlineParser(
         return lastDelimiter
     }
 
-    override fun addBracket(bracket: Bracket?) {
+    override fun addBracket(bracket: Bracket) {
         lastBracket?.bracketAfter = true
         lastBracket = bracket
     }
@@ -275,9 +277,10 @@ class MarkwonInlineParser(
         val end = scanner.position()
         val literal = scanner.getSource(start, end).getContent()
         val node = Text(literal)
-        val delimiter = Delimiter(mutableListOf<Text?>(node), delimiterChar, res.canOpen, res.canClose, lastDelimiter)
-        lastDelimiter?.next = delimiter
-        lastDelimiter = delimiter
+        lastDelimiter = Delimiter(mutableListOf(node), delimiterChar, res.canOpen, res.canClose, lastDelimiter)
+        if (lastDelimiter?.previous != null) {
+            lastDelimiter?.previous?.next = lastDelimiter
+        }
         return node
     }
 
@@ -405,9 +408,8 @@ class MarkwonInlineParser(
             return null
         }
 
-        val before: String?
         val codePointBefore = scanner.peekPreviousCodePoint()
-        before = if (codePointBefore == Scanner.END.code) {
+        val before = if (codePointBefore == Scanner.END.code) {
             "\n"
         } else {
             codePointBefore.toChar().toString()
@@ -439,7 +441,7 @@ class MarkwonInlineParser(
     }
 
     override fun processDelimiters(stackBottom: Delimiter?) {
-        val openersBottom: MutableMap<Char?, Delimiter?> = HashMap()
+        val openersBottom: MutableMap<Char, Delimiter?> = HashMap()
 
         // find first closer above stackBottom:
         var closer = lastDelimiter
@@ -451,6 +453,7 @@ class MarkwonInlineParser(
             val delimiterChar = closer.delimiterChar
 
             val delimiterProcessor = delimiterProcessors[delimiterChar]
+            Log.d("parse4", "$delimiterChar -> $delimiterProcessor")
             if (!closer.canClose() || delimiterProcessor == null) {
                 closer = closer.next
                 continue
@@ -536,7 +539,7 @@ class MarkwonInlineParser(
         }
     }
 
-    private fun removeDelimitersBetween(opener: Delimiter?, closer: Delimiter) {
+    private fun removeDelimitersBetween(opener: Delimiter, closer: Delimiter) {
         var delimiter = closer.previous
         while (delimiter != null && delimiter !== opener) {
             val previousDelimiter = delimiter.previous
@@ -622,7 +625,7 @@ class MarkwonInlineParser(
             return this
         }
 
-        override fun excludeInlineProcessor(processor: Class<out InlineProcessor?>): FactoryBuilder {
+        override fun excludeInlineProcessor(processor: Class<out InlineProcessor>): FactoryBuilder {
             var i = 0
             val size = inlineProcessors.size
             while (i < size) {
@@ -635,7 +638,7 @@ class MarkwonInlineParser(
             return this
         }
 
-        override fun excludeDelimiterProcessor(processor: Class<out DelimiterProcessor?>): FactoryBuilder {
+        override fun excludeDelimiterProcessor(processor: Class<out DelimiterProcessor>): FactoryBuilder {
             var i = 0
             val size = delimiterProcessors.size
             while (i < size) {
@@ -720,7 +723,10 @@ class MarkwonInlineParser(
             return map
         }
 
-        private fun calculateSpecialCharacters(inlineCharacters: MutableSet<Char>, delimiterCharacters: MutableSet<Char>): BitSet {
+        private fun calculateSpecialCharacters(
+            inlineCharacters: MutableSet<Char>,
+            delimiterCharacters: MutableSet<Char>
+        ): BitSet {
             val bitSet = BitSet()
             for (c in inlineCharacters) {
                 bitSet.set(c.code)

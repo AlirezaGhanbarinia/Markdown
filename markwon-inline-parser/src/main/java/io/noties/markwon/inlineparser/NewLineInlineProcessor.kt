@@ -15,7 +15,7 @@ class NewLineInlineProcessor : InlineProcessor() {
         return '\n'
     }
 
-    override fun parse(): Node? {
+    override fun parse(): Node {
         scanner.next() // assume we're at a \n
 
         val previous = block.lastChild

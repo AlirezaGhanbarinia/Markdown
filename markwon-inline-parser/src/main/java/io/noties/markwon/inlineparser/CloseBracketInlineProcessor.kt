@@ -16,7 +16,7 @@ class CloseBracketInlineProcessor : InlineProcessor() {
         return ']'
     }
 
-    override fun parse(): Node? {
+    override fun parse(): Node {
         scanner.next()
         val closeBracketPosition = scanner.position()
 
@@ -75,7 +75,7 @@ class CloseBracketInlineProcessor : InlineProcessor() {
             }
 
             if (reference != null) {
-                val normalized: String? = normalizeReference(reference)
+                val normalized: String = normalizeReference(reference)
                 val def = context.getLinkReferenceDefinition(normalized)
                 if (def != null) {
                     destination = def.destination
@@ -124,7 +124,7 @@ class CloseBracketInlineProcessor : InlineProcessor() {
     }
 
     companion object {
-        fun normalizeReference(input: String): String? {
+        fun normalizeReference(input: String): String {
             // "[label]" -> "label"
             val stripped = input.substring(1, input.length - 1)
             return Escaping.normalizeLabelContent(stripped)

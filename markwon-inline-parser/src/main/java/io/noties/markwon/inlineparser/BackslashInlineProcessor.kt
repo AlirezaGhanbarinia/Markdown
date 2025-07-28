@@ -11,20 +11,18 @@ class BackslashInlineProcessor : InlineProcessor() {
         return '\\'
     }
 
-    override fun parse(): Node? {
+    override fun parse(): Node {
         scanner.next()
         val next = scanner.peek()
-        val node: Node?
-        if (next == '\n') {
+        return if (next == '\n') {
             scanner.next() // HardLineBreak
-            node = HardLineBreak()
+            HardLineBreak()
         } else if (ESCAPABLE.matcher(next.toString()).matches()) {
             scanner.next() // Escaped character
-            node = text(next.toString())
+            text(next.toString())
         } else {
-            node = text("\\")
+            text("\\")
         }
-        return node
     }
 
     companion object {

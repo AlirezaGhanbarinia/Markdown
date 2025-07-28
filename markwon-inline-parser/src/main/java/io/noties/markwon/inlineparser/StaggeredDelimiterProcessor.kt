@@ -40,16 +40,16 @@ internal class StaggeredDelimiterProcessor(private val delim: Char) : DelimiterP
         }
     }
 
-    private fun findProcessor(len: Int): DelimiterProcessor? {
+    private fun findProcessor(len: Int): DelimiterProcessor {
         for (p in processors) {
             if (p.minLength <= len) {
                 return p
             }
         }
-        return processors.firstOrNull()
+        return processors.first()
     }
 
-    override fun process(opener: DelimiterRun, closer: DelimiterRun?): Int {
-        return findProcessor(opener.length())!!.process(opener, closer)
+    override fun process(opener: DelimiterRun, closer: DelimiterRun): Int {
+        return findProcessor(opener.length()).process(opener, closer)
     }
 }
