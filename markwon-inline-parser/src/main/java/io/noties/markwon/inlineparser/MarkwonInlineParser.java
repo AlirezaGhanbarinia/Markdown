@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -229,7 +230,7 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
         // we still reference it
         this.block = block;
 
-        while (scanner.hasNext()) {
+        while (true) {
             Node node = parseInline();
             if (node != null) {
                 block.appendChild(node);
@@ -415,28 +416,24 @@ public class MarkwonInlineParser implements InlineParser, MarkwonInlineParserCon
         if (res == null) {
             return null;
         }
-        int length = res.count;
 
-        Position startPos = scanner.position();
-        List<Text> texts = new ArrayList<>(length);
-        for (int i = 0; i < length; i++) {
-            texts.add(new Text(String.valueOf(scanner.peek())));
+        int count = res.count;
+        Position start = scanner.position();
+
+        for (int i = 0; i < count; i++) {
             scanner.next();
         }
-        // Add entry to stack for this opener
-        lastDelimiter = new Delimiter(texts, delimiterChar, res.canOpen, res.canClose, lastDelimiter);
-        if (lastDelimiter.previous != null) {
-            lastDelimiter.previous.next = lastDelimiter;
+        Position end = scanner.position();
+        String literal = scanner.getSource(start, end).getContent();
+        Text node = new Text(literal);
+        Delimiter delimiter = new Delimiter(Collections.singletonList(node), delimiterChar, res.canOpen, res.canClose, lastDelimiter);
+        if (lastDelimiter != null) {
+            lastDelimiter.next = delimiter;
         }
-
-        if (texts.size() == 1) {
-            return texts.get(0);
-        } else {
-            Text container = new Text();
-            for (Text t : texts) container.appendChild(t);
-            return container;
-        }
+        lastDelimiter = delimiter;
+        return node;
     }
+
 
     /**
      * Attempt to parse link destination, returning the string or null if no match.
