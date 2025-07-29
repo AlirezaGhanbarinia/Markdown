@@ -93,7 +93,7 @@ abstract class InlineProcessor {
         return context.parseLinkLabel()
     }
 
-    protected fun processDelimiters(stackBottom: Delimiter) {
+    protected fun processDelimiters(stackBottom: Delimiter?) {
         context.processDelimiters(stackBottom)
     }
 

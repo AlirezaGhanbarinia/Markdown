@@ -91,9 +91,7 @@ class MarkwonInlineParser(
     // might we construct these in factory?
     init {
         this.delimiterProcessors = calculateDelimiterProcessors(delimiterProcessors)
-        this.specialCharacters = calculateSpecialCharacters(
-            this.inlineProcessors.keys,
-            this.delimiterProcessors.keys
+        this.specialCharacters = calculateSpecialCharacters(this.inlineProcessors.keys, this.delimiterProcessors.keys
         )
     }
 
@@ -213,7 +211,7 @@ class MarkwonInlineParser(
     }
 
     override fun getLinkReferenceDefinition(label: String): LinkReferenceDefinition? {
-        return if (referencesEnabled) inlineParserContext.getLinkReferenceDefinition(label) else null
+        return if (referencesEnabled) inlineParserContext.getDefinition(LinkReferenceDefinition::class.java ,label) else null
     }
 
     /**
@@ -453,7 +451,6 @@ class MarkwonInlineParser(
             val delimiterChar = closer.delimiterChar
 
             val delimiterProcessor = delimiterProcessors[delimiterChar]
-            Log.d("parse4", "$delimiterChar -> $delimiterProcessor")
             if (!closer.canClose() || delimiterProcessor == null) {
                 closer = closer.next
                 continue
@@ -462,6 +459,7 @@ class MarkwonInlineParser(
             val openingDelimiterChar = delimiterProcessor.openingCharacter
 
             // Found delimiter closer. Now look back for first matching opener.
+            var useDelims = 0
             var openerFound = false
             var potentialOpenerFound = false
             var opener = closer.previous
@@ -479,26 +477,11 @@ class MarkwonInlineParser(
 
             if (!openerFound) {
                 if (!potentialOpenerFound) {
-                    // Set lower bound for future searches for openers.
-                    // Only do this when we didn't even have a potential
-                    // opener (one that matches the character and can open).
-                    // If an opener was rejected because of the number of
-                    // delimiters (e.g. because of the "multiple of 3" rule),
-                    // we want to consider it next time because the number
-                    // of delimiters can change as we continue processing.
                     openersBottom.put(delimiterChar, closer.previous)
                     if (!closer.canOpen()) {
-                        // We can remove a closer that can't be an opener,
-                        // once we've seen there's no matching opener:
                         removeDelimiterKeepNode(closer)
                     }
                 }
-                closer = closer.next
-                continue
-            }
-
-            val useDelims = delimiterProcessor.process(opener, closer)
-            if (useDelims <= 0) {
                 closer = closer.next
                 continue
             }
@@ -526,8 +509,6 @@ class MarkwonInlineParser(
                 closer = closer.next
             }
         }
-
-        // remove all delimiters
         while (lastDelimiter != null && lastDelimiter !== stackBottom) {
             removeDelimiterKeepNode(lastDelimiter)
         }
@@ -620,7 +601,8 @@ class MarkwonInlineParser(
                 )
             )
 
-            this.delimiterProcessors.addAll(listOf(AsteriskDelimiterProcessor(), UnderscoreDelimiterProcessor()))
+            this.delimiterProcessors.add(AsteriskDelimiterProcessor())
+            this.delimiterProcessors.add(UnderscoreDelimiterProcessor())
 
             return this
         }
@@ -689,6 +671,7 @@ class MarkwonInlineParser(
          */
         @JvmStatic
         fun factoryBuilder(): FactoryBuilder {
+            Log.d("parse0", "factoryBuilder: ")
             return FactoryBuilderImpl().includeDefaults()
         }
 
@@ -773,7 +756,9 @@ class MarkwonInlineParser(
             delimiterProcessors: MutableMap<Char, DelimiterProcessor>
         ) {
             val existing = delimiterProcessors.put(delimiterChar, toAdd)
-            require(existing == null) { "Delimiter processor conflict with delimiter char '$delimiterChar'" }
+            require(existing == null) {
+                "Delimiter processor conflict with delimiter char '$delimiterChar'"
+            }
         }
     }
 }
