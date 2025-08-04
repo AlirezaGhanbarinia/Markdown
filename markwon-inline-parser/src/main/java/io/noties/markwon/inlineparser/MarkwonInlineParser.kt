@@ -74,7 +74,6 @@ class MarkwonInlineParser(
     // currently we still hold a reference to it because we decided not to
     //  pass previous node argument to inline-processors (current usage is limited with NewLineInlineProcessor)
     private lateinit var block: Node
-    private lateinit var input: SourceLines
     private lateinit var scanner: Scanner
 
     /**
@@ -120,7 +119,6 @@ class MarkwonInlineParser(
 
     private fun reset(content: SourceLines) {
         Log.d("parse2", "parse: ${content.content}")
-        this.input = content
         this.scanner = Scanner.of(content)
         this.lastDelimiter = null
         this.lastBracket = null
@@ -223,10 +221,6 @@ class MarkwonInlineParser(
 
     override fun block(): Node {
         return block
-    }
-
-    override fun input(): SourceLines {
-        return input
     }
 
     override fun scanner(): Scanner {

@@ -26,4 +26,9 @@ dependencies {
     api(libs.jlatexmath.android)
 
     implementation(libs.androidx.core.ktx)
+
+
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.mockito)
 }

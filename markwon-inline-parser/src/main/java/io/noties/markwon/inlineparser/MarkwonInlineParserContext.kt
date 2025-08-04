@@ -12,8 +12,6 @@ import java.util.regex.Pattern
 interface MarkwonInlineParserContext {
     fun block(): Node
 
-    fun input(): SourceLines
-
     fun scanner(): Scanner
 
     fun lastBracket(): Bracket?

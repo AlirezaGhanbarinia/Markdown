@@ -1,6 +1,9 @@
 [versions]
 
 compile-sdk = "35"
+junit = "4.13.2"
+mockitoCore = "5.18.0"
+robolectric = "4.15.1"
 target-sdk = "34"
 min-sdk    = "23"
 
@@ -8,7 +11,7 @@ agp = "8.10.1"
 kotlin = "2.2.0"
 coreKtx = "1.16.0"
 
-commonmark = "0.25.0"
+commonmark = "0.25.1"
 coil = "2.7.0"
 androidsvg = "1.4"
 okhttp = "5.1.0"
@@ -19,15 +22,17 @@ debug = "5.1.0"
 adapt = "2.2.0"
 ixjava = "1.0.0"
 gson = "2.13.1"
-commonsio = "2.19.0"
+commonsio = "2.20.0"
 androidgif = "1.2.29"
 jlatexmathandroid = "0.2.0"
 
 [libraries]
-androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+junit = { module = "junit:junit", version.ref = "junit" }
 kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlin" }
 
 annotations       = { module = "androidx.annotation:annotation", version = "1.9.1" }
+mockito = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
 recyclerView     = { module = "androidx.recyclerview:recyclerview", version = "1.4.0" }
 core              = { module = "androidx.core:core", version = "1.16.0" }
 appcompat         = { module = "androidx.appcompat:appcompat", version = "1.7.1" }
@@ -44,6 +49,7 @@ commonmark-image     = { module = "org.commonmark:commonmark-ext-image-attribute
 commonmark-ins       = { module = "org.commonmark:commonmark-ext-ins", version.ref = "commonmark" }
 commonmark-task      = { module = "org.commonmark:commonmark-ext-task-list-items", version.ref = "commonmark" }
 commonmark-yaml      = { module = "org.commonmark:commonmark-ext-yaml-front-matter", version.ref = "commonmark" }
+commonmark-test-util      = { module = "org.commonmark:commonmark-test-util", version.ref = "commonmark" }
 
 android-svg         = { module = "com.caverock:androidsvg", version.ref = "androidsvg" }
 android-gif         = { module = "pl.droidsonroids.gif:android-gif-drawable", version.ref = "androidgif" }
@@ -60,6 +66,7 @@ gson                = { module = "com.google.code.gson:gson", version.ref = "gso
 commons-io          = { module = "commons-io:commons-io", version.ref = "commonsio" }
 
 prism4j-bundler     = { module = "io.noties:prism4j-bundler", version.ref = "prism4j" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

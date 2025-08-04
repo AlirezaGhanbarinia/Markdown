@@ -45,13 +45,11 @@ abstract class InlineProcessor {
 
     protected lateinit var context: MarkwonInlineParserContext
     protected lateinit var block: Node
-    protected lateinit var input: SourceLines
     protected lateinit var scanner: Scanner
 
     fun parse(context: MarkwonInlineParserContext): Node? {
         this.context = context
         this.block = context.block()
-        this.input = context.input()
         this.scanner = context.scanner()
 
         return parse()

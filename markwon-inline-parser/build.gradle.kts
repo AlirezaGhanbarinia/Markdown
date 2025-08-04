@@ -23,4 +23,6 @@ dependencies {
     api(libs.annotations)
     api(libs.commonmark)
     implementation(libs.androidx.core.ktx)
+    testImplementation(libs.junit)
+    testImplementation(libs.commonmark.test.util)
 }
